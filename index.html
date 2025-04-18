@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로블록스 스타일 3D 캐릭터</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #111; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script>
+    // 기본 3D 씬 세팅
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x222222);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 5, 10);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // 바닥
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(100, 100),
+      new THREE.MeshStandardMaterial({ color: 0x444444 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // 조명
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(10, 20, 10);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0x404040));
+
+    // 캐릭터 (큐브)
+    const character = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 2, 1),
+      new THREE.MeshStandardMaterial({ color: 0xffcc00 })
+    );
+    character.position.y = 1; // 바닥에서 떠있게
+    scene.add(character);
+
+    // 키 입력
+    const keys = {};
+    window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
+    window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
+
+    // 물리
+    let velocityY = 0;
+    const gravity = -0.01;
+    const jumpPower = 0.2;
+    let canJump = true;
+
+    // 애니메이션 루프
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // 이동
+      const speed = 0.1;
+      if (keys["w"]) character.position.z -= speed;
+      if (keys["s"]) character.position.z += speed;
+      if (keys["a"]) character.position.x -= speed;
+      if (keys["d"]) character.position.x += speed;
+
+      // 점프
+      if (keys[" "] && canJump) {
+        velocityY = jumpPower;
+        canJump = false;
+      }
+
+      // 중력
+      character.position.y += velocityY;
+      velocityY += gravity;
+
+      // 바닥 충돌
+      if (character.position.y <= 1) {
+        character.position.y = 1;
+        velocityY = 0;
+        canJump = true;
+      }
+
+      // 카메라 따라가기 (3인칭 느낌)
+      camera.position.x = character.position.x;
+      camera.position.z = character.position.z + 10;
+      camera.lookAt(character.position);
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // 리사이즈 대응
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
