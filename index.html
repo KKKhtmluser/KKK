@@ -1,146 +1,197 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>주원의 기부 게임</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roblox 스타일 웹게임 (3인칭 + 1인칭)</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #a0e9ff, #ffffff);
-      color: #333;
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
     }
-
-    header {
-      background: #ffffffaa;
-      backdrop-filter: blur(10px);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 40px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    canvas {
+      display: block;
     }
-
-    header h1 {
-      font-size: 1.8rem;
-      color: #333;
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-family: sans-serif;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px 20px;
+      border-radius: 10px;
     }
-
-    nav a {
-      margin-left: 20px;
-      text-decoration: none;
-      color: #444;
-      font-weight: bold;
-      transition: color 0.3s;
-    }
-
-    nav a:hover {
-      color: #ff6600;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 100px 20px;
-      background: url('https://i.postimg.cc/Xn17n5nZ/Chat-GPT-Image-2025-4-10-10-30-46.png') no-repeat center;
-      background-size: contain;
-    }
-
-    .hero h2 {
-      font-size: 2.5rem;
-      color: #222;
-      margin-bottom: 20px;
-    }
-
-    .hero p {
-      font-size: 1.2rem;
-      color: #555;
-      margin-bottom: 30px;
-    }
-
-    .hero button {
-      padding: 15px 30px;
-      font-size: 1.1rem;
-      background: #ffcc00;
+    #startBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 40px;
+      font-size: 20px;
+      background: #4CAF50;
+      color: white;
       border: none;
       border-radius: 10px;
-      color: #000;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      transition: transform 0.2s;
-    }
-
-    .hero button:hover {
-      transform: scale(1.05);
-    }
-
-    section {
-      padding: 60px 20px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    section h3 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-      color: #222;
-    }
-
-    section p, ul {
-      font-size: 1.1rem;
-      color: #444;
-      line-height: 1.6;
-    }
-
-    footer {
-      background: #eee;
-      text-align: center;
-      padding: 20px;
-      font-size: 0.9rem;
-      color: #666;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
+  <div id="ui">WASD로 이동 / 스페이스 점프 / 마우스 회전 / C 키로 시점 전환</div>
+  <button id="startBtn">게임 시작</button>
+  <script type="module">
+    import * as THREE from 'https://cdn.skypack.dev/three';
+    import { PointerLockControls } from 'https://cdn.skypack.dev/three/examples/jsm/controls/PointerLockControls';
 
-  <header>
-    <h1>🌙 주원의 기부 게임</h1>
-    <nav>
-      <a href="#intro">소개</a>
-      <a href="#howto">조작법</a>
-      <a href="https://kkkhtmluser.github.io/juwon-donation/" target="_blank">플레이</a>
-    </nav>
-  </header>
+    let camera, scene, renderer, controls, player, canJump = false;
+    let velocity = new THREE.Vector3();
+    let direction = new THREE.Vector3();
+    let keys = {};
+    const clock = new THREE.Clock();
+    const playerParts = {}; // 캐릭터 파츠
+    let isFirstPerson = false; // 1인칭 모드 여부
 
-  <div class="hero">
-    <h2>🎮 나주원의 RNG 기부 게임</h2>
-    <p>기부하고, 뽑고, 아우라를 수집하는 특별한 모험!</p>
-    <button onclick="window.location.href='https://kkkhtmluser.github.io/juwon-donation/'">지금 바로 플레이하기</button>
-  </div>
+    init();
+    animate();
 
-  <section id="intro">
-    <h3>게임 소개</h3>
-    <p>
-      이 게임은 1원을 기부하면서 즐기는 운빨 게임입니다!  
-      뽑기를 통해 다양한 아우라를 모으고, 상점에서 아이템도 구매할 수 있어요.  
-      희귀한 아우라를 뽑으면 화려한 컷신도 함께 등장합니다!
-    </p>
-  </section>
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x87ceeb); // Sky blue
 
-  <section id="howto">
-    <h3>조작 방법</h3>
-    <ul>
-      <li><strong>W / A / S / D:</strong> 캐릭터 이동</li>
-      <li><strong>Space:</strong> 점프</li>
-      <li><strong>마우스 클릭:</strong> 버튼 조작</li>
-    </ul>
-  </section>
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-  <footer>
-    ⓒ 2025 Juwon’s Game. All rights reserved.
-  </footer>
+      renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
 
+      controls = new PointerLockControls(camera, document.body);
+
+      document.getElementById('startBtn').addEventListener('click', () => {
+        controls.lock();
+        document.getElementById('startBtn').style.display = 'none';
+      });
+
+      scene.add(controls.getObject());
+
+      // 캐릭터 파츠
+      createPlayer();
+
+      // 바닥
+      const floorGeometry = new THREE.PlaneGeometry(100, 100);
+      const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
+      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      // 빛
+      const light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(10, 20, 10);
+      scene.add(light);
+
+      const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambient);
+
+      window.addEventListener('resize', onWindowResize);
+      document.addEventListener('keydown', (e) => keys[e.code] = true);
+      document.addEventListener('keyup', (e) => keys[e.code] = false);
+      document.addEventListener('keydown', handleKeyPress);
+    }
+
+    function createPlayer() {
+      const bodyGeometry = new THREE.BoxGeometry(1, 2, 1);
+      const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
+      playerParts.body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+      playerParts.body.position.y = 1;
+      scene.add(playerParts.body);
+
+      const headGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+      const headMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
+      playerParts.head = new THREE.Mesh(headGeometry, headMaterial);
+      playerParts.head.position.y = 2.5;
+      scene.add(playerParts.head);
+
+      const armGeometry = new THREE.BoxGeometry(0.5, 2, 0.5);
+      const armMaterial = new THREE.MeshStandardMaterial({ color: 0xffcc00 });
+      playerParts.leftArm = new THREE.Mesh(armGeometry, armMaterial);
+      playerParts.leftArm.position.set(-0.75, 1.5, 0);
+      scene.add(playerParts.leftArm);
+
+      playerParts.rightArm = new THREE.Mesh(armGeometry, armMaterial);
+      playerParts.rightArm.position.set(0.75, 1.5, 0);
+      scene.add(playerParts.rightArm);
+
+      const legGeometry = new THREE.BoxGeometry(0.5, 2, 0.5);
+      playerParts.leftLeg = new THREE.Mesh(legGeometry, armMaterial);
+      playerParts.leftLeg.position.set(-0.5, 0, 0);
+      scene.add(playerParts.leftLeg);
+
+      playerParts.rightLeg = new THREE.Mesh(legGeometry, armMaterial);
+      playerParts.rightLeg.position.set(0.5, 0, 0);
+      scene.add(playerParts.rightLeg);
+    }
+
+    function handleKeyPress(event) {
+      if (event.code === 'KeyC') {
+        isFirstPerson = !isFirstPerson;
+        updateCameraPosition();
+      }
+    }
+
+    function updateCameraPosition() {
+      if (isFirstPerson) {
+        camera.position.set(0, 1.5, 0); // 머리 위치
+      } else {
+        camera.position.set(0, 2, 5); // 3인칭 모드
+      }
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+
+      velocity.x -= velocity.x * 10.0 * delta;
+      velocity.z -= velocity.z * 10.0 * delta;
+      velocity.y -= 9.8 * 5.0 * delta; // gravity
+
+      direction.z = Number(keys['KeyW']) - Number(keys['KeyS']);
+      direction.x = Number(keys['KeyD']) - Number(keys['KeyA']);
+      direction.normalize();
+
+      if (keys['Space'] && canJump) {
+        velocity.y += 10;
+        canJump = false;
+      }
+
+      if (direction.length() > 0) {
+        velocity.z -= direction.z * 400.0 * delta;
+        velocity.x -= direction.x * 400.0 * delta;
+      }
+
+      controls.moveRight(-velocity.x * delta);
+      controls.moveForward(-velocity.z * delta);
+
+      controls.getObject().position.y += velocity.y * delta;
+
+      if (controls.getObject().position.y < 1.0) {
+        velocity.y = 0;
+        controls.getObject().position.y = 1.0;
+        canJump = true;
+      }
+
+      renderer.render(scene, camera);
+    }
+  </script>
 </body>
 </html>
