@@ -2,103 +2,145 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>로블록스 스타일 3D 캐릭터</title>
+  <title>주원의 기부 게임</title>
   <style>
-    body { margin: 0; overflow: hidden; background: #111; }
-    canvas { display: block; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #a0e9ff, #ffffff);
+      color: #333;
+    }
+
+    header {
+      background: #ffffffaa;
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #333;
+    }
+
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #444;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #ff6600;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 100px 20px;
+      background: url('https://i.postimg.cc/Xn17n5nZ/Chat-GPT-Image-2025-4-10-10-30-46.png') no-repeat center;
+      background-size: contain;
+    }
+
+    .hero h2 {
+      font-size: 2.5rem;
+      color: #222;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 30px;
+    }
+
+    .hero button {
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      background: #ffcc00;
+      border: none;
+      border-radius: 10px;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .hero button:hover {
+      transform: scale(1.05);
+    }
+
+    section {
+      padding: 60px 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    section h3 {
+      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    section p, ul {
+      font-size: 1.1rem;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    footer {
+      background: #eee;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
   </style>
 </head>
 <body>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-  <script>
-    // 기본 3D 씬 세팅
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x222222);
 
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 5, 10);
+  <header>
+    <h1>🌙 주원의 기부 게임</h1>
+    <nav>
+      <a href="#intro">소개</a>
+      <a href="#howto">조작법</a>
+      <a href="https://kkkhtmluser.github.io/juwon-donation/" target="_blank">플레이</a>
+    </nav>
+  </header>
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+  <div class="hero">
+    <h2>🎮 나주원의 RNG 기부 게임</h2>
+    <p>기부하고, 뽑고, 아우라를 수집하는 특별한 모험!</p>
+    <button onclick="window.location.href='https://kkkhtmluser.github.io/juwon-donation/'">지금 바로 플레이하기</button>
+  </div>
 
-    // 바닥
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(100, 100),
-      new THREE.MeshStandardMaterial({ color: 0x444444 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    scene.add(floor);
+  <section id="intro">
+    <h3>게임 소개</h3>
+    <p>
+      이 게임은 1원을 기부하면서 즐기는 운빨 게임입니다!  
+      뽑기를 통해 다양한 아우라를 모으고, 상점에서 아이템도 구매할 수 있어요.  
+      희귀한 아우라를 뽑으면 화려한 컷신도 함께 등장합니다!
+    </p>
+  </section>
 
-    // 조명
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(10, 20, 10);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040));
+  <section id="howto">
+    <h3>조작 방법</h3>
+    <ul>
+      <li><strong>W / A / S / D:</strong> 캐릭터 이동</li>
+      <li><strong>Space:</strong> 점프</li>
+      <li><strong>마우스 클릭:</strong> 버튼 조작</li>
+    </ul>
+  </section>
 
-    // 캐릭터 (큐브)
-    const character = new THREE.Mesh(
-      new THREE.BoxGeometry(1, 2, 1),
-      new THREE.MeshStandardMaterial({ color: 0xffcc00 })
-    );
-    character.position.y = 1; // 바닥에서 떠있게
-    scene.add(character);
+  <footer>
+    ⓒ 2025 Juwon’s Game. All rights reserved.
+  </footer>
 
-    // 키 입력
-    const keys = {};
-    window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
-    window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
-
-    // 물리
-    let velocityY = 0;
-    const gravity = -0.01;
-    const jumpPower = 0.2;
-    let canJump = true;
-
-    // 애니메이션 루프
-    function animate() {
-      requestAnimationFrame(animate);
-
-      // 이동
-      const speed = 0.1;
-      if (keys["w"]) character.position.z -= speed;
-      if (keys["s"]) character.position.z += speed;
-      if (keys["a"]) character.position.x -= speed;
-      if (keys["d"]) character.position.x += speed;
-
-      // 점프
-      if (keys[" "] && canJump) {
-        velocityY = jumpPower;
-        canJump = false;
-      }
-
-      // 중력
-      character.position.y += velocityY;
-      velocityY += gravity;
-
-      // 바닥 충돌
-      if (character.position.y <= 1) {
-        character.position.y = 1;
-        velocityY = 0;
-        canJump = true;
-      }
-
-      // 카메라 따라가기 (3인칭 느낌)
-      camera.position.x = character.position.x;
-      camera.position.z = character.position.z + 10;
-      camera.lookAt(character.position);
-
-      renderer.render(scene, camera);
-    }
-
-    animate();
-
-    // 리사이즈 대응
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
 </body>
 </html>
